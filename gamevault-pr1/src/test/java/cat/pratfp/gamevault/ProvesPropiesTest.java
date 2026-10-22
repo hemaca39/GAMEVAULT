@@ -1,37 +1,60 @@
+
 package cat.pratfp.gamevault;
 
+import cat.pratfp.gamevault.fs.Magatzem;
+import cat.pratfp.gamevault.io.IndexHores;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.io.RandomAccessFile;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Les teves proves (PR1-14). Aquesta classe SÍ que l'has de modificar.
- * Escriu dues proves noves que no estiguin a les altres classes de prova.
- * Canvia el @DisplayName perquè digui què comproves i treu el fail().
- * Idees: l'índex amb un títol de més de 40 caràcters; una còpia de seguretat d'un fitxer sense extensió;
- * un CSV amb una línia en blanc; carregar un .json que no existeix amb el Convertidor;
- * sumaHores en dos registres seguits...
- */
 class ProvesPropiesTest {
 
     @TempDir
     Path tmp;
 
     @Test
-    @DisplayName("PR1-14 · la meva primera prova")
+    @DisplayName("PR1-14 · llegeix les hores d'un registre amb un títol llarg")
     void primeraProva() throws Exception {
-        // Escriu aquí el teu codi (PR1-14)
-        fail("PR1-14: escriu la teva primera prova");
+        Path fitxer = tmp.resolve("index.dat");
+
+        String titol = "Aquest es un titol de joc que supera els quaranta caracters";
+        double horesEsperades = 12.5;
+
+        try (RandomAccessFile raf = new RandomAccessFile(fitxer.toFile(), "rw")) {
+            raf.writeInt(1);
+            StringBuilder titolFix = new StringBuilder(titol);
+            titolFix.setLength(40);
+            raf.writeChars(titolFix.toString());
+            raf.writeDouble(horesEsperades);
+        }
+
+        IndexHores index = new IndexHores(fitxer);
+
+        assertEquals(horesEsperades, index.llegeixHores(0));
     }
 
     @Test
-    @DisplayName("PR1-14 · la meva segona prova")
+    @DisplayName("PR1-14 · crea una còpia de seguretat d'un fitxer sense extensió")
     void segonaProva() throws Exception {
-        // Escriu aquí el teu codi (PR1-14)
-        fail("PR1-14: escriu la teva segona prova");
+        Path base = tmp.resolve("magatzem");
+        Magatzem magatzem = new Magatzem(base);
+
+        magatzem.preparaEstructura();
+
+        Path original = tmp.resolve("dades");
+        String contingut = "Contingut de prova";
+        Files.writeString(original, contingut);
+
+        Path copia = magatzem.copiaSeguretat(original);
+
+        assertTrue(Files.exists(copia));
+        assertEquals(contingut, Files.readString(copia));
+        assertEquals(contingut, Files.readString(original));
     }
 }

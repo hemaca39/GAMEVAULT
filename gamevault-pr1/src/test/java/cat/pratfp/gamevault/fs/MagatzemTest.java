@@ -55,3 +55,4 @@ class MagatzemTest {
         assertEquals(400, m.midaTotal());
     }
 }
+

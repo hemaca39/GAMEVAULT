@@ -1,3 +1,4 @@
+
 package cat.pratfp.gamevault.io;
 
 import cat.pratfp.gamevault.model.Joc;
@@ -18,35 +19,50 @@ public class JsonJocDao {
 
     private final ObjectMapper mapper = creaMapper();
 
-    /*
-     * TODO PR1-08 (1a part) · Configurar l'ObjectMapper (CA 1.5)
-     * Retorna un ObjectMapper que:
-     *   - entengui LocalDate (registra el JavaTimeModule),
-     *   - escrigui les dates com "2017-02-24" i no com [2017,2,24],
-     *   - no peti si el JSON porta camps que Joc no té.
-     * Pista: sessió 6, Ex4JsonAmbJackson.
+    /**
+     * Configura l'ObjectMapper per treballar amb dates i JSON.
+     *
+     * @return ObjectMapper configurat per al catàleg de jocs
      */
     private static ObjectMapper creaMapper() {
-        // Escriu aquí el teu codi (PR1-08)
-        return new ObjectMapper();
+        ObjectMapper mapper = new ObjectMapper();
+
+        mapper.registerModule(new JavaTimeModule());
+
+        mapper.disable(
+                SerializationFeature.WRITE_DATES_AS_TIMESTAMPS
+        );
+
+        mapper.disable(
+                DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
+        );
+
+        return mapper;
     }
 
-    /*
-     * TODO PR1-08 (2a part) · Escriure la llista en JSON (CA 1.4)
-     * Escriu la llista sencera al fitxer, amb la sortida INDENTADA (una dada per línia).
+    /**
+     * Escriu la llista sencera de jocs en un fitxer JSON indentat.
+     *
+     * @param p ruta del fitxer JSON de destinació
+     * @param jocs llista de jocs que s'han d'escriure
+     * @throws IOException si no es pot escriure el fitxer
      */
     public void escriu(Path p, List<Joc> jocs) throws IOException {
-        // Escriu aquí el teu codi (PR1-08)
-        throw new UnsupportedOperationException("PR1-08: encara no està fet");
+        mapper.enable(SerializationFeature.INDENT_OUTPUT);
+        mapper.writeValue(p.toFile(), jocs);
     }
 
-    /*
-     * TODO PR1-09 · Llegir la llista des de JSON (CA 1.3)
-     * Llegeix el fitxer i retorna una List<Joc>.
-     * Compte: amb List.class Jackson no sap que els elements són Joc. Què feia servir l'exemple?
+    /**
+     * Llegeix una llista de jocs des d'un fitxer JSON.
+     *
+     * @param p ruta del fitxer JSON que s'ha de llegir
+     * @return llista de jocs llegits
+     * @throws IOException si no es pot llegir o interpretar el fitxer
      */
     public List<Joc> llegeix(Path p) throws IOException {
-        // Escriu aquí el teu codi (PR1-09)
-        throw new UnsupportedOperationException("PR1-09: encara no està fet");
+        return mapper.readValue(
+                p.toFile(),
+                new TypeReference<List<Joc>>() {}
+        );
     }
 }

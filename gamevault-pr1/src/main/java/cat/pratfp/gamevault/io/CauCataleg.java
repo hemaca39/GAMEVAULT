@@ -1,3 +1,4 @@
+
 package cat.pratfp.gamevault.io;
 
 import cat.pratfp.gamevault.model.Joc;
@@ -11,25 +12,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Cau binària del catàleg: desa la llista sencera amb serialització Java per recuperar-la ràpidament.
+ * Cau binària del catàleg: desa la llista sencera amb serialització Java
+ * per recuperar-la ràpidament.
  * Només la pot llegir Java: no és un format d'intercanvi.
  */
 public class CauCataleg {
 
-    /*
-     * TODO PR1-11 · Serialitzar i desserialitzar el catàleg (CA 1.3 i 1.4)
-     * desa:    escriu amb un ObjectOutputStream UN sol objecte: new ArrayList<>(jocs).
-     *          (List.of(...) també és serialitzable, però així sempre desem el mateix tipus.)
-     * carrega: llegeix l'objecte amb un ObjectInputStream i retorna'l com a List<Joc>.
-     *          readObject pot llançar ClassNotFoundException: embolica-la en una IOException
-     *          amb un missatge clar i la causa original.
-     * Tots dos amb try-with-resources.
-     * 2a part: perquè funcioni, el record Joc ha de ser serialitzable (fitxer Joc.java).
-     * Pista: sessió 6, Ex1Serialitza.
+    /**
+     * Desa la llista sencera de jocs en un fitxer binari.
+     *
+     * @param p ruta del fitxer on es desarà el catàleg
+     * @param jocs llista de jocs que s'han de desar
+     * @throws IOException si no es pot escriure el fitxer
      */
     public void desa(Path p, List<Joc> jocs) throws IOException {
-        // Escriu aquí el teu codi (PR1-11)
-        throw new UnsupportedOperationException("PR1-11: encara no està fet");
+        try (ObjectOutputStream sortida = new ObjectOutputStream(
+                Files.newOutputStream(p))) {
+            sortida.writeObject(new ArrayList<>(jocs));
+        }
     }
 
     /**
@@ -37,11 +37,20 @@ public class CauCataleg {
      *
      * @param p fitxer .ser
      * @return la llista de jocs recuperada
-     * @throws IOException si el fitxer no existeix, està corromput o la classe no es troba
+     * @throws IOException si el fitxer no existeix, està corromput
+     * o no es pot llegir
      */
     @SuppressWarnings("unchecked")
     public List<Joc> carrega(Path p) throws IOException {
-        // Escriu aquí el teu codi (PR1-11)
-        throw new UnsupportedOperationException("PR1-11: encara no està fet");
+        try (ObjectInputStream entrada = new ObjectInputStream(
+                Files.newInputStream(p))) {
+            Object objecte = entrada.readObject();
+            return (List<Joc>) objecte;
+        } catch (ClassNotFoundException e) {
+            throw new IOException(
+                    "No s'ha pogut trobar la classe necessària per recuperar el catàleg.",
+                    e
+            );
+        }
     }
 }

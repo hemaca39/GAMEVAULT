@@ -43,58 +43,81 @@ public class Magatzem {
         return base.resolve("backup");
     }
 
-    /**
-     * PR1-02 · Crear l'estructura (CA 1.1)
-     * Crea les tres carpetes: importacio(), exportacio() i copies().
-     */
+    /*
+     * TODO PR1-02 · Crear l'estructura (CA 1.1)
+
+/**
+ * Crea les carpetes d'importació, exportació i còpies de seguretat.
+ *
+ * @throws IOException si no es poden crear les carpetes.
+ */
     public void preparaEstructura() throws IOException {
         Files.createDirectories(importacio());
         Files.createDirectories(exportacio());
         Files.createDirectories(copies());
     }
 
+
+    /*
+     * TODO PR1-03 · Còpia de seguretat amb marca de temps (CA 1.1)
+
     /**
-     * PR1-03 · Còpia de seguretat amb marca de temps (CA 1.1)
-     * Copia el fitxer dins de copies() amb el nom <nom>_<marca>.<extensió>
+     * Copia el fitxer dins de copies() sense modificar l'original.
+     *
+     * @param fitxer fitxer original que es vol copiar
+     * @return ruta de la còpia de seguretat
+     * @throws IOException si no es pot copiar el fitxer
      */
     public Path copiaSeguretat(Path fitxer) throws IOException {
-        String nomComplet = fitxer.getFileName().toString();
-        int puntIndex = nomComplet.lastIndexOf('.');
+        String nom = fitxer.getFileName().toString();
+        int punt = nom.lastIndexOf('.');
 
-        String nom;
+        String nomBase;
         String extensio;
 
-        if (puntIndex != -1) {
-            nom = nomComplet.substring(0, puntIndex);
-            extensio = nomComplet.substring(puntIndex);
+        if (punt > 0) {
+            nomBase = nom.substring(0, punt);
+            extensio = nom.substring(punt);
         } else {
-            nom = nomComplet;
+            nomBase = nom;
             extensio = "";
         }
 
-        String nouNom = nom + "_" + marcaDeTemps() + extensio;
-        Path desti = copies().resolve(nouNom);
+        String nomCopia = nomBase + "_" + marcaDeTemps() + extensio;
+        Path desti = copies().resolve(nomCopia);
 
-        return Files.copy(fitxer, desti, StandardCopyOption.REPLACE_EXISTING);
+        Files.createDirectories(copies());
+
+        return Files.copy(
+                fitxer,
+                desti,
+                StandardCopyOption.REPLACE_EXISTING
+        );
     }
 
+
+
     /**
-     * PR1-04 · Mida total del magatzem (CA 1.1)
-     * Retorna la suma de les mides (en bytes) de TOTS els fitxers regulars.
+     * TODO PR1-04 · Mida total del magatzem (CA 1.1)
+     *
+     * Retorna la suma de les mides de tots els fitxers regulars
+     * que hi ha dins de la carpeta base, incloent-hi les subcarpetes.
+     *
+     * @return mida total dels fitxers en bytes
+     * @throws IOException si no es pot recórrer el magatzem o llegir un fitxer
      */
     public long midaTotal() throws IOException {
         try (Stream<Path> camins = Files.walk(base)) {
-            return camins.filter(Files::isRegularFile)
-                    .mapToLong(p -> {
-                        try {
-                            return Files.size(p);
-                        } catch (IOException e) {
-                            return 0L;
-                        }
-                    })
-                    .sum();
+            long total = 0;
+
+            for (Path cami : camins.filter(Files::isRegularFile).toList()) {
+                total += Files.size(cami);
+            }
+
+            return total;
         }
     }
+
 
     /**
      * Llista els fitxers regulars del magatzem amb la seva mida, ordenats per ruta.
